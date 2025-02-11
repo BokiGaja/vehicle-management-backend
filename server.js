@@ -34,8 +34,26 @@ const dbPromise = initDB();
 
 app.get('/vehicles', async (req, res) => {
   const db = await dbPromise;
-  const vehicles = await db.all('SELECT * FROM vehicles');
-  res.json(vehicles);
+  let { page = 1, limit = 10 } = req.query;
+
+  page = parseInt(page, 10);
+  limit = parseInt(limit, 10);
+  const offset = (page - 1) * limit;
+
+  try {
+    const vehicles = await db.all('SELECT * FROM vehicles LIMIT ? OFFSET ?', [limit, offset]);
+    const total = await db.get('SELECT COUNT(*) as count FROM vehicles');
+
+    res.json({
+      vehicles,
+      total: total.count,
+      page,
+      limit,
+      hasMore: offset + limit < total.count,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get('/vehicles/:slug', async (req, res) => {
