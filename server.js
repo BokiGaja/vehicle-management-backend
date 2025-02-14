@@ -87,7 +87,7 @@ app.put('/vehicles/:id', async (req, res) => {
   try {
     const db = await dbPromise;
     await db.run(
-      'UPDATE vehicles SET license_plate = ?, manufacturer = ?, vin, custom_name = ?, slug = ? WHERE id = ?',
+      'UPDATE vehicles SET license_plate = ?, manufacturer = ?, vin = ?, custom_name = ?, slug = ? WHERE id = ?',
       [license_plate, manufacturer, vin, custom_name, slug, req.params.id]
     );
     res.json({ id: req.params.id, license_plate, manufacturer, vin, custom_name, slug });
