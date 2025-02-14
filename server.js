@@ -71,6 +71,10 @@ app.post('/vehicles', async (req, res) => {
   const slug = `${custom_name.trim().replace(/\s+/g, '-')}-${license_plate.trim().replace(/\s+/g, '-')}`.toLowerCase();
   try {
     const db = await dbPromise;
+    const existingVehicle = await db.get("SELECT * FROM vehicles WHERE license_plate = ? AND id != ?", [license_plate, req.params.id]);
+    if (existingVehicle) {
+      return res.status(400).json({ error: "License plate must be unique" });
+    }
     const result = await db.run(
       'INSERT INTO vehicles (license_plate, manufacturer, vin, custom_name, slug) VALUES (?, ?, ?, ?, ?)',
       [license_plate, manufacturer, vin, custom_name, slug]
@@ -86,11 +90,29 @@ app.put('/vehicles/:id', async (req, res) => {
   const slug = `${custom_name.trim().replace(/\s+/g, '-')}-${license_plate.trim().replace(/\s+/g, '-')}`.toLowerCase();
   try {
     const db = await dbPromise;
+    const existingVehicle = await db.get("SELECT * FROM vehicles WHERE license_plate = ? AND id != ?", [license_plate, req.params.id]);
+    if (existingVehicle) {
+      return res.status(400).json({ error: "License plate must be unique" });
+    }
     await db.run(
       'UPDATE vehicles SET license_plate = ?, manufacturer = ?, vin = ?, custom_name = ?, slug = ? WHERE id = ?',
       [license_plate, manufacturer, vin, custom_name, slug, req.params.id]
     );
     res.json({ id: req.params.id, license_plate, manufacturer, vin, custom_name, slug });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/vehicles/:id', async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const result = await db.run('DELETE FROM vehicles WHERE id = ?', req.params.id);
+    if (result.changes > 0) {
+      res.json({ message: 'Vehicle deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Vehicle not found' });
+    }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
