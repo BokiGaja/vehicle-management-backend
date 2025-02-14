@@ -10,6 +10,11 @@
    ```sh
    node server.js
    ```
+3. Seed the data (optional)
+   - If you want to populate database with dummy data run the following command. It will generate 20 random vehicles
+   ```sh
+   node seed.js
+   ```
 
 The API runs on `http://localhost:3500`.
 
